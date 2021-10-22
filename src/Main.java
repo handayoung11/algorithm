@@ -1,40 +1,39 @@
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-
-import static java.lang.Integer.parseInt;
 
 public class Main {
 
+    // 백준 2798 블랙잭 - 완전탐색
     public static void main(String[] args) {
-        // 백준 1065 한수 - 완전탐색
         Scanner scanner = new Scanner(System.in);
-        int count = findNumber(scanner.nextInt());
-        System.out.println(count);
+        int cardsCount = scanner.nextInt(), targetNumber = scanner.nextInt();
+        List<Integer> cards = new ArrayList<>(cardsCount);
+        for(int i = 0; i < cardsCount; i++) cards.add(scanner.nextInt());
+        System.out.println(findClosestNumber(targetNumber, cards));
     }
 
-    public static int findNumber(int num) {
-        // 99이하의 숫자는 반드시 한수이므로 num 중 99이하인 수를 기본 count로 설정
-        int count = num >= 99 ? 99 : num;
-
-        // 99까지는 체크완료했으므로 100부터 시작
-        for (int i = 100; i <= num; i++) {
-            // 입력받은 숫자를 자리별로 분해하여 배열로 보관
-            int[] intArr = Arrays.stream((i + "").split("")).mapToInt(s -> parseInt(s)).toArray();
-            // 공차 구하기
-            int dif = intArr[1] - intArr[0];
-
-            boolean isNumber = true;
-            for (int j = 2; j < intArr.length; j++)
-                // 공차 + 이전수 = 현재수가 성립하는지 검사
-                if (intArr[j] != dif + intArr[j - 1]) {
-                    isNumber = false;
-                    break;
+    // num에서 임의의 숫자 3개의 합 중 target에 가장 가까운 수를 찾는 함수
+    public static int findClosestNumber(int target, List<Integer> num) {
+        int theClosestN = 0;
+        // i: 조합할 첫번째 수의 index
+        // j: 조합할 두번째 수의 index
+        // k: 조합할 세번째 수의 index
+        for(int i = 0; i < num.size(); i++)
+            // i >= j이면 동일한 수를 2번 꺼내게 되므로 j = i + 1 시작
+            for(int j = i + 1; j < num.size(); j++) {
+                // j >= k이면 동일한 수를 2번 꺼내게 되므로 k = j + 1 시작
+                for(int k = j + 1; k < num.size(); k++) {
+                    // n: 세 수를 조합한다
+                    // dif: 조합한 수와 목표 숫자의 차
+                    int n = num.get(i) + num.get(j) + num.get(k), dif = target - n;
+                    if(dif >= 0 && dif <= target - theClosestN) {
+                        theClosestN = n;
+                        // dif가 0이면 이것보다 가까운 수를 찾을 수 없으므로 바로 반환한다.
+                        if(dif == 0) return theClosestN;
+                    }
                 }
-
-            // 모든 자릿수에서 공차 + 이전수 = 현재수가 성립하면 count++
-            if (isNumber) count++;
-        }
-
-        return count;
+            }
+        return theClosestN;
     }
 }
