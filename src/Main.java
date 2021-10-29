@@ -2,63 +2,68 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-    static int data[][], row, column;
-    static int xMove[] = {0, 0, 1, -1}, yMove[] = {1, -1, 0, 0}, max = 0;
-    static boolean checked[][];
 
-    // 백준 14500 - 테트로미노
+    static double rate[][] = new double[6][3];
+    static String twoNations[][] = new String[6][2];
+    static HashMap<String, Integer> nationIndex = new HashMap<>();
+    static double answer[] = new double[4];
+
+    // 백준 15997 - 승부 예측
     public static void main(String[] args) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer rowColumn = new StringTokenizer(bufferedReader.readLine());
-        row = strToInt(rowColumn.nextToken());
-        column = strToInt(rowColumn.nextToken());
-        data = new int[row][column];
-        checked = new boolean[row][column];
-
-        for (int i = 0; i < row; i++) {
-            StringTokenizer dataStr = new StringTokenizer(bufferedReader.readLine());
-            for (int j = 0; j < column; j++) data[i][j] = strToInt(dataStr.nextToken());
-        }
-
-        for (int i = 0; i < row; i++)
-            for (int j = 0; j < column; j++) {
-                dfs(i, j, 0, 1);
-            }
-        System.out.println(max);
-    }
-
-    private static void dfs(int y, int x, int sum, int len) {
-        sum += data[y][x];
-        // dfs 탐색 중 길이가 4이면 그만둔다
-        if(len >= 4) {
-            max = Math.max(max, sum);
-            return;
-        } else if(len == 3) {
-            // ㅏ ㅓ ㅗ ㅜ 테트로미노는 길이가 3인 dfs이므로 따로 설정
-            // ㅏ ㅓ 테트로미노
-            if(y - 2 >= 0 && checked[y - 1][x] && checked[y - 2][x]) {
-                if(x < column - 1) max = Math.max(max, sum + data[y - 1][x + 1]);
-                if(x >= 1) max = Math.max(max, sum + data[y - 1][x - 1]);
-            }
-            // ㅗ ㅜ 테트로미노
-            if(x - 2 >= 0 && checked[y][x - 1] && checked[y][x - 2]) {
-                if(y < row - 1) max = Math.max(max, sum + data[y + 1][x - 1]);
-                if(y >= 1) max = Math.max(max, sum + data[y - 1][x - 1]);
-            }
-        }
+        StringTokenizer nations = new StringTokenizer(bufferedReader.readLine());
         for(int i = 0; i < 4; i++) {
-            checked[y][x] = true;
-            int nextX = x + xMove[i], nextY = y + yMove[i];
-            if(nextX >= 0 && nextX < column && nextY >= 0 && nextY < row) {
-                if (!checked[nextY][nextX]) dfs(nextY, nextX, sum, len + 1);
+            nationIndex.put(nations.nextToken(), i);
+            answer[i] = 0;
+        }
+
+        for(int i = 0; i < 6; i++) {
+            StringTokenizer data = new StringTokenizer(bufferedReader.readLine());
+            for(int j = 0; j< 2; j++) twoNations[i][j] = data.nextToken();
+            for(int j = 0; j < 3; j++) rate[i][j] = strToDouble(data.nextToken());
+        }
+
+        int score[] = new int[4];
+        for(int j = 0; j < 3; j++) {
+            dfs(0, j, 1, score.clone());
+        }
+
+        for(int i = 0; i < 4; i++) System.out.println(answer[i]);
+    }
+
+    // y좌표, x좌표, 확률, 4팀의 점수
+    static void dfs(int y, int x, double percent, int score[]) {
+        // 확률이 0%인 경우 return
+        if(rate[y][x] == 0) return;
+
+        if(x == 0) score[nationIndex.get(twoNations[y][0])] += 3;
+        else if(x == 1) {
+            score[nationIndex.get(twoNations[y][0])] += 1;
+            score[nationIndex.get(twoNations[y][1])] += 1;
+        } else score[nationIndex.get(twoNations[y][1])] += 3;
+        percent = percent * rate[y][x];
+
+        // win, draw, lose를 탐색하기 위한 for
+        for(int j = 0; j < 3; j++) if(y <= 4) dfs(y + 1, j, percent, score.clone());
+
+        if(y == 5) {
+            int sorted[] = score.clone(), first = 0, second = 0;
+            Arrays.sort(sorted);
+            for(int i = 0; i < 4; i++) {
+                if(sorted[3] == sorted[i]) first++;
+                if(sorted[2] == sorted[i]) second++;
             }
-            // 지나간 좌표(노드)여도 재접근될 수 있으므로 false로 초기화
-            checked[y][x] = false;
+            double firstRate = 1;
+            if(first >= 2) firstRate = 2.0 / first;
+
+            for(int i = 0; i < 4; i++) {
+                if (sorted[3] == score[i]) answer[i] = percent * firstRate + answer[i];
+                if (first == 1) if(sorted[2] == score[i]) answer[i] = percent / second + answer[i];
+            }
         }
     }
 
-
-    private static int strToInt(String str) {
-        return Integer.parseInt(str);
+    private static double strToDouble(String str) {
+        return Double.parseDouble(str);
     }
 }
