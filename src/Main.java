@@ -1,69 +1,93 @@
 import java.io.*;
-import java.util.*;
+import java.util.StringTokenizer;
 
 public class Main {
+    static int MAX = 0, N;
+    // 상하좌우
+    static int xyMove[][] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    static boolean calculated[][];
 
-    static double rate[][] = new double[6][3];
-    static String twoNations[][] = new String[6][2];
-    static HashMap<String, Integer> nationIndex = new HashMap<>();
-    static double answer[] = new double[4];
-
-    // 백준 15997 - 승부 예측
+    // 백준 12100 - 2048 (Easy)
     public static void main(String[] args) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer nations = new StringTokenizer(bufferedReader.readLine());
-        for(int i = 0; i < 4; i++) {
-            nationIndex.put(nations.nextToken(), i);
-            answer[i] = 0;
+        N = strToInt(bufferedReader.readLine());
+        int data[][] = new int[N][N];
+        calculated = new boolean[N][N];
+
+        for (int i = 0; i < N; i++) {
+            StringTokenizer token = new StringTokenizer(bufferedReader.readLine());
+            for (int j = 0; j < N; j++) data[i][j] = strToInt(token.nextToken());
         }
 
-        for(int i = 0; i < 6; i++) {
-            StringTokenizer data = new StringTokenizer(bufferedReader.readLine());
-            for(int j = 0; j< 2; j++) twoNations[i][j] = data.nextToken();
-            for(int j = 0; j < 3; j++) rate[i][j] = strToDouble(data.nextToken());
+        if(N == 1) {
+            System.out.println(data[0][0]);
+            return;
         }
-
-        int score[] = new int[4];
-        for(int j = 0; j < 3; j++) {
-            dfs(0, j, 1, score.clone());
-        }
-
-        for(int i = 0; i < 4; i++) System.out.println(answer[i]);
+        dfs(data, 0);
+        System.out.println(MAX + "");
     }
 
-    // y좌표, x좌표, 확률, 4팀의 점수
-    static void dfs(int y, int x, double percent, int score[]) {
-        // 확률이 0%인 경우 return
-        if(rate[y][x] == 0) return;
+    // 이동이 일어난 후의 결과값을 얻어오는 dfs
+    private static void dfs(int[][] data, int len) {
+        if (len == 5) return;
 
-        if(x == 0) score[nationIndex.get(twoNations[y][0])] += 3;
-        else if(x == 1) {
-            score[nationIndex.get(twoNations[y][0])] += 1;
-            score[nationIndex.get(twoNations[y][1])] += 1;
-        } else score[nationIndex.get(twoNations[y][1])] += 3;
-        percent = percent * rate[y][x];
-
-        // win, draw, lose를 탐색하기 위한 for
-        for(int j = 0; j < 3; j++) if(y <= 4) dfs(y + 1, j, percent, score.clone());
-
-        if(y == 5) {
-            int sorted[] = score.clone(), first = 0, second = 0;
-            Arrays.sort(sorted);
-            for(int i = 0; i < 4; i++) {
-                if(sorted[3] == sorted[i]) first++;
-                if(sorted[2] == sorted[i]) second++;
+        int source[][] = new int[N][N];
+        for (int i = 0; i < N; i++) source[i] = data[i].clone();
+        for (int i = 0; i < 4; i++) {
+            int x = 0, y = 0;
+            if (xyMove[i][0] == -1 || xyMove[i][1] == -1) {
+                x = xyMove[i][0] * -1;
+                y = xyMove[i][1] * -1;
+            } else {
+                if(xyMove[i][0] == 0) y = N - 2;
+                else x = N - 2;
             }
-            double firstRate = 1;
-            if(first >= 2) firstRate = 2.0 / first;
-
-            for(int i = 0; i < 4; i++) {
-                if (sorted[3] == score[i]) answer[i] = percent * firstRate + answer[i];
-                if (first == 1) if(sorted[2] == score[i]) answer[i] = percent / second + answer[i];
-            }
+            calculated = new boolean[N][N];
+            blockMove(y, x, i, data, false);
+            dfs(data, len + 1);
+            for (int j = 0; j < N; j++) data[j] = source[j].clone();
         }
     }
 
-    private static double strToDouble(String str) {
-        return Double.parseDouble(str);
+    //입력받은 좌표를 기점으로 moveIdx에 따라 한 칸 움직이는 함수
+    private static void blockMove(int y, int x, int moveIdx, int result[][], boolean fromZero) {
+        int nextY = y + xyMove[moveIdx][1];
+        int nextX = x + xyMove[moveIdx][0];
+        if (nextY < 0 || nextY >= N || nextX < 0 || nextX >= N || calculated[y][x]) return;
+
+        // 블록 밀기
+        int v1 = result[y][x], v2 = result[nextY][nextX];
+        if (v2 == 0) {
+            result[y][x] = 0;
+            result[nextY][nextX] += v1;
+            if(v1 != 0) blockMove(nextY, nextX, moveIdx, result, true);
+        } else if (v1 == v2) {
+            result[y][x] = 0;
+            result[nextY][nextX] += v1;
+            calculated[y][x] = true;
+        }
+
+        MAX = Math.max(MAX, result[x][y]);
+        if(fromZero) return; //0에서 온 경우 다음 인덱스로 갈 필요 X
+
+        if (xyMove[moveIdx][0] == 0) {
+            x++;
+            if(x >= N) {
+                x = 0;
+                y += xyMove[moveIdx][1] * -1;
+            }
+        } else {
+            y++;
+            if(y >= N) {
+                y = 0;
+                x += xyMove[moveIdx][0] * -1;
+            }
+        }
+        if (y < 0 || y >= N || x < 0 || x >= N) return;
+        blockMove(y, x, moveIdx, result, false);
+    }
+
+    private static int strToInt(String str) {
+        return Integer.parseInt(str);
     }
 }
