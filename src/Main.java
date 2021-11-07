@@ -1,45 +1,48 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.*;
+import java.io.*;
 
 public class Main {
-    static int cnt, num[], round = 1;
-    static StringBuilder matchList = new StringBuilder();
+    static int MinClickCnt, TargetCh;
+    static String WorkingButtons = "", TargetChStr;
 
-    // 백준 1057 - 토너먼트
+    // 백준 1107 - 리모컨
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer token = new StringTokenizer(br.readLine());
-        cnt = strToInt(token.nextToken());
-        num = new int[]{strToInt(token.nextToken()), strToInt(token.nextToken())};
+        String brokenButtons = "";
 
-        while(matchList.length() < cnt) matchList.insert(0, 0);
-        matchList.replace(num[0] - 1, num[0], "1");
-        matchList.replace(num[1] - 1, num[1], "1");
-        match();
+        TargetCh = strToInt(TargetChStr = br.readLine());
+        int brokenButtonsCnt = strToInt(br.readLine());
+        if(brokenButtonsCnt != 0) brokenButtons = br.readLine();
 
-        System.out.println(round);
+        for (int i = 0; i < 10; i++) {
+            if (!brokenButtons.contains((i + ""))) WorkingButtons += i;
+        }
+        MinClickCnt = Math.abs(TargetCh - 100);
+        if(brokenButtonsCnt != 10 && MinClickCnt > TargetChStr.length()) {
+            int dif = 0;
+            while(true) {
+                int nextCh = TargetCh + dif, prevCh = TargetCh - dif, len;
+                if(prevCh >= 0 && (len = containWord(prevCh)) != -1) {
+                    MinClickCnt = Math.min(MinClickCnt, len + dif);
+                    break;
+                }
+                if((len = containWord(nextCh)) != -1) {
+                    MinClickCnt = Math.min(MinClickCnt, len + dif);
+                    break;
+                }
+                dif++;
+            }
+        }
+        System.out.println(MinClickCnt);
     }
 
-    static void match() {
-        StringBuilder nextMatchList = new StringBuilder();
-        for(int i = 0; i < cnt - 1; i+=2) {
-            int p = ((matchList.charAt(i) - '0') + (matchList.charAt(i + 1) - '0'));
-            if(p == 2) return;
-            nextMatchList.append(p);
-        }
-        if(cnt != nextMatchList.length()) nextMatchList.append(matchList.charAt(cnt - 1));
-        matchList = nextMatchList;
-
-        if(cnt <= 1) {
-            round = -1;
-            return;
-        }
-
-        cnt = (cnt + 1) / 2;
-        round++;
-        match();
+    private static int containWord(int channel) {
+        int length = 0;
+        do {
+            if(!WorkingButtons.contains(channel % 10 + "")) return -1;
+            channel /= 10;
+            length++;
+        } while(channel != 0);
+        return length;
     }
 
     private static int strToInt(String str) {
