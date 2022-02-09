@@ -1,76 +1,178 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 public class Main {
-    private static String words[], longestWord;
-    private static boolean[][] visited = new boolean[4][4];
-    private static char[][] board = new char[4][4];
-    private static int score, passedwordsCnt;
+    static int N, expectedMax = 2, max, maps[][][], count = 1, SIZE = 10;
 
-    // 백준 9202 - Boggle
+    // 백준 12094 2048 (Hard)
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        N = Integer.parseInt(br.readLine());
 
-        int wordsCnt = strToInt(br.readLine());
-        String wordsSource[] = new String[wordsCnt];
-        for (int i = 0; i < wordsCnt; i++) wordsSource[i] = br.readLine();
+        maps = new int[SIZE + 1][N][N];
 
-        br.readLine();
+        String str;
+        StringTokenizer st;
+        int total = 0;
+        for (int i = 0; i < N; i++) {
+            str = br.readLine();
+            st = new StringTokenizer(str, " ");
 
-        int boggleBoardCnt = strToInt(br.readLine());
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out), 20 * boggleBoardCnt);
-        while (boggleBoardCnt > 0) {
-            for (int j = 0; j < 4; j++) board[j] = br.readLine().toCharArray();
-            words = wordsSource.clone();
-            score = 0;
-            passedwordsCnt = 0;
-            longestWord = "";
-            checkBoard();
-            bw.write(score + " " + longestWord + " " + passedwordsCnt + "\n");
-            if (boggleBoardCnt != 1) br.readLine();
-            boggleBoardCnt--;
+            for (int j = 0; j < N; j++) {
+                maps[0][i][j] = Integer.parseInt(st.nextToken());
+                total += maps[0][i][j];
+            }
         }
-        bw.flush();
+        for (; expectedMax * 2 <= total; expectedMax *= 2) ;
+        for (Dir value : Dir.values()) {
+            move(1, value);
+        }
+        System.out.println(max);
     }
 
-    private static void checkBoard() {
-        for (int row = 0; row < 4; row++)
-            for (int col = 0; col < 4; col++)
-                for (int i = 0; i < words.length; i++) {
-                    if (words[i].charAt(0) == board[row][col] && boardContains(row, col, i, 1)) {
-                        int wordLen = words[i].length();
-                        if (wordLen <= 5) score += (wordLen - 1) / 2;
-                        else if (wordLen == 6) score += 3;
-                        else if (wordLen == 7) score += 5;
-                        else score += 11;
+    public static void move(int cnt, Dir dir) {
+        boolean isChanged;
+        count = cnt;
 
-                        if (longestWord.length() < wordLen) longestWord = words[i];
-                        else if (longestWord.length() == wordLen) longestWord = longestWord.compareTo(words[i]) < 0 ? longestWord : words[i];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                maps[cnt][i][j] = maps[cnt - 1][i][j];
+            }
+        }
+        isChanged = true;
 
-                        words[i] = " ";
-                        passedwordsCnt++;
+        switch (dir) {
+            case UP:
+                isChanged = moveUp() != 0;
+                break;
+            case DOWN:
+                isChanged = moveDown() != 0;
+                break;
+            case LEFT:
+                isChanged = moveLeft() != 0;
+                break;
+            case RIGHT:
+                isChanged = moveRight() != 0;
+                break;
+        }
+
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++)
+                max = Math.max(max, maps[cnt][i][j]);
+        }
+        if (!isChanged) return;
+        if (max >= expectedMax) return;
+        if (cnt >= SIZE) return;
+
+        for (Dir value : Dir.values()) {
+            move(cnt + 1, value);
+        }
+    }
+
+    private static int moveUp() {
+        int cnt = 0;
+        int[][] map = maps[count];
+        for (int i = 0; i < N; i++) {
+            int pos = 0;
+            for (int j = 1; j < N; j++) {
+                if (map[j][i] != 0) {
+                    if (map[j][i] == map[pos][i]) {
+                        map[pos++][i] *= 2;
+                        map[j][i] = 0;
+                        cnt++;
+                    } else {
+                        if (map[pos][i] != 0) pos++;
+                        if (pos < j) {
+                            map[pos][i] = map[j][i];
+                            map[j][i] = 0;
+                            cnt++;
+                        }
                     }
                 }
-    }
-
-    private static boolean boardContains(int row, int col, int wordsIdx, int checkIdx) {
-        if (checkIdx == words[wordsIdx].length()) return true;
-        visited[row][col] = true;
-
-        for (int i = -1; i < 2; i++)
-            for (int j = -1; j < 2; j++) {
-                int nextRow = row + i, nextCol = col + j;
-                if (nextRow > 3 || nextRow < 0 || nextCol > 3 || nextCol < 0) continue;
-                if (!visited[nextRow][nextCol] && board[nextRow][nextCol] == words[wordsIdx].charAt(checkIdx))
-                    if (boardContains(nextRow, nextCol, wordsIdx, checkIdx + 1)) {
-                        visited[row][col] = false;
-                        return true;
-                    }
             }
-
-        return visited[row][col] = false;
+        }
+        return cnt;
     }
 
-    private static int strToInt(String str) {
-        return Integer.parseInt(str);
+    private static int moveDown() {
+        int cnt = 0;
+        int[][] map = maps[count];
+        for (int i = 0; i < N; i++) {
+            int pos = N - 1;
+            for (int j = N - 2; j >= 0; j--) {
+                if (map[j][i] != 0) {
+                    if (map[pos][i] == map[j][i]) {
+                        map[pos--][i] *= 2;
+                        map[j][i] = 0;
+                        cnt++;
+                    } else {
+                        if (map[pos][i] != 0) pos--;
+                        if (pos > j) {
+                            map[pos][i] = map[j][i];
+                            map[j][i] = 0;
+                            cnt++;
+                        }
+                    }
+                }
+            }
+        }
+        return cnt;
     }
+
+    private static int moveLeft() {
+        int cnt = 0;
+        int[][] map = maps[count];
+        for (int j = 0; j < N; j++) {
+            int pos = 0;
+            for (int i = 1; i < N; i++) {
+                if (map[j][i] != 0) {
+                    if (map[j][i] == map[j][pos]) {
+                        map[j][pos++] *= 2;
+                        map[j][i] = 0;
+                        cnt++;
+                    } else {
+                        if (map[j][pos] != 0) pos++;
+                        if (pos < i) {
+                            map[j][pos] = map[j][i];
+                            map[j][i] = 0;
+                            cnt++;
+                        }
+                    }
+                }
+            }
+        }
+        return cnt;
+    }
+
+
+    private static int moveRight() {
+        int cnt = 0;
+        int[][] map = maps[count];
+        for (int j = 0; j < N; j++) {
+            int pos = N - 1;
+            for (int i = N - 2; i >= 0; i--) {
+                if (map[j][i] != 0) {
+                    if (map[j][i] == map[j][pos]) {
+                        map[j][pos--] *= 2;
+                        map[j][i] = 0;
+                        cnt++;
+                    } else {
+                        if (map[j][pos] != 0) pos--;
+                        if (pos > i) {
+                            map[j][pos] = map[j][i];
+                            map[j][i] = 0;
+                            cnt++;
+                        }
+                    }
+                }
+            }
+        }
+        return cnt;
+    }
+}
+
+enum Dir {
+    UP, DOWN, LEFT, RIGHT
 }
