@@ -4,175 +4,54 @@ import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
 public class Main {
-    static int N, expectedMax = 2, max, maps[][][], count = 1, SIZE = 10;
 
-    // 백준 12094 2048 (Hard)
+    static int MIN, SHARE;
+
+    // 백준 1214 - 쿨한 물건 구매
     public static void main(String[] args) throws IOException {
+        int D, higher, lower;
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        N = Integer.parseInt(br.readLine());
+        String str = br.readLine();
+        StringTokenizer st = new StringTokenizer(str, " ");
 
-        maps = new int[SIZE + 1][N][N];
+        D = Integer.parseInt(st.nextToken());
+        higher = Integer.parseInt(st.nextToken());
+        lower = Integer.parseInt(st.nextToken());
 
-        String str;
-        StringTokenizer st;
-        int total = 0;
-        for (int i = 0; i < N; i++) {
-            str = br.readLine();
-            st = new StringTokenizer(str, " ");
-
-            for (int j = 0; j < N; j++) {
-                maps[0][i][j] = Integer.parseInt(st.nextToken());
-                total += maps[0][i][j];
-            }
+        if(D % higher == 0 || D % lower == 0) {
+            System.out.println(D);
+            return;
         }
-        for (; expectedMax * 2 <= total; expectedMax *= 2) ;
-        for (Dir value : Dir.values()) {
-            move(1, value);
+
+        if (higher < lower) {
+            int temp = higher;
+            higher = lower;
+            lower = temp;
         }
-        System.out.println(max);
-    }
 
-    public static void move(int cnt, Dir dir) {
-        boolean isChanged;
-        count = cnt;
-
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                maps[cnt][i][j] = maps[cnt - 1][i][j];
-            }
+        if (higher % lower == 0) {
+            MIN = lower * (D / lower + 1);
+            System.out.println(MIN);
+            return;
         }
-        isChanged = true;
 
-        switch (dir) {
-            case UP:
-                isChanged = moveUp() != 0;
+        MIN = higher * (D / higher + 1);
+
+        for (int i = (D / higher) - 1; i >= 0; i--) {
+            int res = minVal(D - higher * i, lower, higher * i);
+            MIN = Math.min(res, MIN);
+            if (MIN == D) {
+                MIN = D;
                 break;
-            case DOWN:
-                isChanged = moveDown() != 0;
-                break;
-            case LEFT:
-                isChanged = moveLeft() != 0;
-                break;
-            case RIGHT:
-                isChanged = moveRight() != 0;
-                break;
-        }
-
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++)
-                max = Math.max(max, maps[cnt][i][j]);
-        }
-        if (!isChanged) return;
-        if (max >= expectedMax) return;
-        if (cnt >= SIZE) return;
-
-        for (Dir value : Dir.values()) {
-            move(cnt + 1, value);
-        }
-    }
-
-    private static int moveUp() {
-        int cnt = 0;
-        int[][] map = maps[count];
-        for (int i = 0; i < N; i++) {
-            int pos = 0;
-            for (int j = 1; j < N; j++) {
-                if (map[j][i] != 0) {
-                    if (map[j][i] == map[pos][i]) {
-                        map[pos++][i] *= 2;
-                        map[j][i] = 0;
-                        cnt++;
-                    } else {
-                        if (map[pos][i] != 0) pos++;
-                        if (pos < j) {
-                            map[pos][i] = map[j][i];
-                            map[j][i] = 0;
-                            cnt++;
-                        }
-                    }
-                }
             }
         }
-        return cnt;
+        System.out.println(MIN);
     }
 
-    private static int moveDown() {
-        int cnt = 0;
-        int[][] map = maps[count];
-        for (int i = 0; i < N; i++) {
-            int pos = N - 1;
-            for (int j = N - 2; j >= 0; j--) {
-                if (map[j][i] != 0) {
-                    if (map[pos][i] == map[j][i]) {
-                        map[pos--][i] *= 2;
-                        map[j][i] = 0;
-                        cnt++;
-                    } else {
-                        if (map[pos][i] != 0) pos--;
-                        if (pos > j) {
-                            map[pos][i] = map[j][i];
-                            map[j][i] = 0;
-                            cnt++;
-                        }
-                    }
-                }
-            }
-        }
-        return cnt;
+    private static int minVal(int target, int divider, int base) {
+        SHARE = target / divider;
+        if (target % divider != 0) SHARE++;
+        return base + SHARE * divider;
     }
 
-    private static int moveLeft() {
-        int cnt = 0;
-        int[][] map = maps[count];
-        for (int j = 0; j < N; j++) {
-            int pos = 0;
-            for (int i = 1; i < N; i++) {
-                if (map[j][i] != 0) {
-                    if (map[j][i] == map[j][pos]) {
-                        map[j][pos++] *= 2;
-                        map[j][i] = 0;
-                        cnt++;
-                    } else {
-                        if (map[j][pos] != 0) pos++;
-                        if (pos < i) {
-                            map[j][pos] = map[j][i];
-                            map[j][i] = 0;
-                            cnt++;
-                        }
-                    }
-                }
-            }
-        }
-        return cnt;
-    }
-
-
-    private static int moveRight() {
-        int cnt = 0;
-        int[][] map = maps[count];
-        for (int j = 0; j < N; j++) {
-            int pos = N - 1;
-            for (int i = N - 2; i >= 0; i--) {
-                if (map[j][i] != 0) {
-                    if (map[j][i] == map[j][pos]) {
-                        map[j][pos--] *= 2;
-                        map[j][i] = 0;
-                        cnt++;
-                    } else {
-                        if (map[j][pos] != 0) pos--;
-                        if (pos > i) {
-                            map[j][pos] = map[j][i];
-                            map[j][i] = 0;
-                            cnt++;
-                        }
-                    }
-                }
-            }
-        }
-        return cnt;
-    }
-}
-
-enum Dir {
-    UP, DOWN, LEFT, RIGHT
 }
