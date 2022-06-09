@@ -4,54 +4,58 @@ import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
 public class Main {
+    static int totalX, totalY, target, vx, vy; //X값 총합,Y값 총합
+    static int coor[][]; //좌표 배열
+    static double min;
 
-    static int MIN, SHARE;
-
-    // 백준 1214 - 쿨한 물건 구매
+    // 백준 1007 - 벡터 매칭
     public static void main(String[] args) throws IOException {
-        int D, higher, lower;
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String str = br.readLine();
-        StringTokenizer st = new StringTokenizer(str, " ");
+        int T = Integer.parseInt(br.readLine());
+        for (int i = 0; i < T; i++) {
+            int n = Integer.parseInt(br.readLine());
+            target = n / 2;
+            //coor 구조 = [[x: 0, y: 1], [0, 2]]
+            coor = new int[n][2];
+            totalX = 0;
+            totalY = 0;
+            min = Double.POSITIVE_INFINITY;
 
-        D = Integer.parseInt(st.nextToken());
-        higher = Integer.parseInt(st.nextToken());
-        lower = Integer.parseInt(st.nextToken());
+            for (int j = 0; j < n; j++) {
+                StringTokenizer st = new StringTokenizer(br.readLine(), " ");
+                int x = Integer.parseInt(st.nextToken()), y = Integer.parseInt(st.nextToken());
+                coor[j] = new int[]{x + x, y + y};
+                totalX += x;
+                totalY += y;
+            }
 
-        if(D % higher == 0 || D % lower == 0) {
-            System.out.println(D);
-            return;
+            for (int j = 0; j < coor.length; j++) {
+                vx = totalX;
+                vy = totalY;
+                if (coor.length - j >= target) {
+                    getMinVec(j, 1);
+                }
+            }
+            System.out.println(Math.sqrt(min));
         }
+    }
 
-        if (higher < lower) {
-            int temp = higher;
-            higher = lower;
-            lower = temp;
+    private static void getMinVec(int idx, int depth) {
+        vx -= coor[idx][0];
+        vy -= coor[idx][1];
+
+        if (depth >= target) {
+            min = Math.min((long)vx * vx + (long)vy * vy, min);
         }
-
-        if (higher % lower == 0) {
-            MIN = lower * (D / lower + 1);
-            System.out.println(MIN);
-            return;
-        }
-
-        MIN = higher * (D / higher + 1);
-
-        for (int i = (D / higher) - 1; i >= 0; i--) {
-            int res = minVal(D - higher * i, lower, higher * i);
-            MIN = Math.min(res, MIN);
-            if (MIN == D) {
-                MIN = D;
-                break;
+        else {
+            ++depth;
+            for (int i = idx + 1; i < coor.length; i++) {
+                if (coor.length - i >= target - depth + 1) {
+                    getMinVec(i, depth);
+                }
             }
         }
-        System.out.println(MIN);
+        vx += coor[idx][0];
+        vy += coor[idx][1];
     }
-
-    private static int minVal(int target, int divider, int base) {
-        SHARE = target / divider;
-        if (target % divider != 0) SHARE++;
-        return base + SHARE * divider;
-    }
-
 }
