@@ -1,40 +1,32 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 public class Main {
-    static int board[], N, ans;
 
-    // 백준 9663 - N-Queen
+    // 백준 2339 - 일곱 난쟁이
     public static void main(String[] args) throws IOException {
+        int height[] = new int[9], total = -100;
+
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        N = Integer.parseInt(br.readLine());
-        for (int i = 0; i < N; i++) {
-            board = new int[N];
-            putQueen(i, 0);
+        for (int i = 0; i < 9; i++) {
+            height[i] = Integer.parseInt(br.readLine());
+            total += height[i];
         }
+        Arrays.sort(height);
 
-        System.out.println(ans);
-    }
-
-    private static void putQueen(int x, int y) {
-        if (y == N - 1) {
-            ans++;
-            return;
-        }
-
-        board[y] = x;
-
-        int nextY = y + 1;
-        outer:
-        for (int j = 0; j < N; j++) {
-            for (int i = 0; i < nextY; i++) {
-                if (j == board[i] || Math.abs(board[i] - j) == nextY - i) {
-                    continue outer;
+        for (int i = 0; i < 9; i++) {
+            for (int j = i + 1; j < 9; j++) {
+                if (height[i] + height[j] == total) {
+                    for (int c = 0; c < 9; c++) {
+                        if (c != i && c!= j) {
+                            System.out.println(height[c]);
+                        }
+                    }
+                    return;
                 }
             }
-
-            putQueen(j, y + 1);
         }
     }
 }
