@@ -1,126 +1,116 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import static java.lang.Integer.parseInt;
+
 public class Main {
+    static int N, M, ans = Integer.MAX_VALUE, targetNum, curNum, time;
+    static int[][] statuses, cur;
+    static boolean isChanged;
+    static ArrayList<int[]> virus = new ArrayList<>();
 
-    static int ROW, COLUMN;
-    static char[][] BUILDING;
-    static char[][] ROOMS;
-    static boolean isElgnatcer = true;
-
-    // 백준 17860 - Square Rooms
+    // 백준 17142 - 연구소3
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer str = new StringTokenizer(br.readLine());
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        N = parseInt(st.nextToken());
+        M = parseInt(st.nextToken());
+        statuses = new int[N][N];
+        cur = new int[N][N];
+        targetNum = N * N;
 
-        ROW = Integer.parseInt(str.nextToken());
-        COLUMN = Integer.parseInt(str.nextToken());
-        BUILDING = new char[ROW][COLUMN];
-        ROOMS = new char[ROW][COLUMN];
-
-        for (int i = 0; i < ROW; i++) {
-            for (int j = 0; j < COLUMN; j++) {
-                int read = br.read();
-                if (read == 10) {
-                    j--;
-                    continue;
-                }
-                BUILDING[i][j] = (char) read;
-            }
-        }
-
-        dfs(0, 0, 'A');
-
-        if(isElgnatcer) {
-            System.out.println("elgnatcer");
-        }
-    }
-
-    static void dfs(int x, int y, char label) {
-        char nextLabel = label;
-        int size = Math.min(COLUMN - x, ROW - y);
-        loop:
-        while(size >= 1) {
-            int treasures = 0, rocks = 0;
-            int maxColumn = x + size, maxRow = y + size;
-            for (int i = y; i < maxRow; i++) {
-                for (int j = x; j < maxColumn; j++) {
-                    if (ROOMS[i][j] != '0' && ROOMS[i][j] != '\u0000') {
-                        size = j == x ? 1 : j - x;
-                        continue loop;
-                    }
-                    if (BUILDING[i][j] == '$') {
-                        treasures++;
-                    }
-                    if (BUILDING[i][j] == '#') {
-                        rocks++;
-                    }
-                    if (treasures + rocks > 1) {
-                        size--;
-                        continue loop;
-                    }
-                }
-            }
-
-            if (treasures + rocks == 0) {
-                return;
-            } else {
-                for (int i = y; i < maxRow; i++) {
-                    for (int j = x; j < maxColumn; j++) {
-                        if (rocks == 1) {
-                            ROOMS[i][j] = '#';
+        for (int i = 0; i < N; i++) {
+            st = new StringTokenizer(br.readLine());
+            for (int j = 0; j < N; j++) {
+                statuses[i][j] = parseInt(st.nextToken());
+                if (statuses[i][j] == 1 || statuses[i][j] == 2) {
+                    targetNum--;
+                    if (statuses[i][j] == 2) {
+                        if (virus.size() % 5 == 0) {
+                            virus.add(new int[]{i, j});
                         } else {
-                            nextLabel = label == 'Z' ? 'a' : (char) (label + 1);
-                            ROOMS[i][j] = i < maxRow && j < maxColumn ? label : '0';
+                            virus.add(0, new int[]{i, j});
                         }
                     }
                 }
             }
+        }
 
-//            System.out.println("(x + \",\" + y) = " + (x + "," + y));
-//            System.out.println("size = " + size);
+        if (targetNum == 0) {
+            System.out.println(0);
+            return;
+        }
 
-            int nextX = x + size;
-            int nextY = y;
+        dfs(0, 0);
 
-            if (nextX >= COLUMN) {
-                nextX = 0;
-                nextY++;
-            }
+        System.out.println(ans == Integer.MAX_VALUE ? -1 : ans);
+    }
 
-            loop2:
-            for (; nextY < ROW; nextY++) {
-                for (; nextX < COLUMN; nextX++) {
-                    if (ROOMS[nextY][nextX] == '0' || ROOMS[nextY][nextX] == '\u0000') {
-                        break loop2;
-                    }
-                }
-                nextX = 0;
-            }
-            if (nextY == ROW) {
-                print();
-                System.exit(0);
-                return;
-            }
-            dfs(nextX, nextY, nextLabel);
-            for (int i = y; i < maxRow; i++) {
-                for (int j = x; j < maxColumn; j++) {
-                    ROOMS[i][j] = '0';
-                }
-            }
-            size--;
+    private static void dfs(int active, int si) {
+        if (active == M) {
+            curNum = 0;
+            cur = new int[N][N];
+            time = 0;
+            separate();
+            return;
+        }
+        for (int i = si; i < virus.size(); i++) {
+            int[] coor = virus.get(i);
+            statuses[coor[0]][coor[1]] = -1;
+            dfs(++active, i + 1);
+            --active;
+            statuses[coor[0]][coor[1]] = 2;
         }
     }
 
-    static void print() {
-        isElgnatcer = true;
-        for (int c = 0; c < ROW; c++) {
-            for (int d = 0; d < COLUMN; d++) {
-                System.out.print(ROOMS[c][d]);
+    private static void separate() {
+        while (true) {
+            isChanged = false;
+            time++;
+            if (time >= ans) {
+                return;
             }
-            System.out.println();
+
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < N; j++) {
+                    if (time == 1 && statuses[i][j] == -1) {
+                        cur[i][j] = 1;
+                    }
+                    if (cur[i][j] == time) {
+                        separateFrom(i, j);
+                    }
+                }
+            }
+
+
+            if (!isChanged) {
+                return;
+            } else if (curNum == targetNum) {
+                ans = Math.min(time, ans);
+                return;
+            }
+        }
+    }
+
+    private static void separateFrom(int i, int j) {
+        separateTo(i - 1, j);
+        separateTo(i + 1, j);
+        separateTo(i, j - 1);
+        separateTo(i, j + 1);
+    }
+
+    private static void separateTo(int i, int j) {
+        try {
+            if ((statuses[i][j] == 0 || statuses[i][j] == 2) && cur[i][j] == 0) {
+                if (statuses[i][j] == 0)
+                    curNum++;
+                cur[i][j] = time + 1;
+                isChanged = true;
+            }
+        } catch (IndexOutOfBoundsException e) {
         }
     }
 }
