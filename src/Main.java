@@ -1,63 +1,59 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.StringTokenizer;
+import java.util.Arrays;
 
 public class Main {
 
-    public static int N, M, table[][], rowD = 0, colD = 0, ans = -1;
+    public static int N;
+    public static int[] buildings;
+    public static int ans = 0;
 
-    // 백준 1025 - 제곱수 찾기
+    // 백준 1027 - 고층 건물
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer st = new StringTokenizer(br.readLine());
 
-        N = Integer.parseInt(st.nextToken());
-        M = Integer.parseInt(st.nextToken());
-        table = new int[N][M];
-
+        N = Integer.parseInt(br.readLine());
+        buildings = Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
         for (int i = 0; i < N; i++) {
-            String numbers = br.readLine();
-            for (int j = 0; j < M; j++) {
-                table[i][j] = numbers.charAt(j) - 48;
-            }
-        }
+            int showed = 0;
 
-        rowD = -N + 1;
-        colD = -M + 1;
+            for (int j = 0; j < N; j++) {
+                if (i - 1 <= j && i + 1 >= j) {
+                    if (i != j) {
+                        showed++;
+                    }
+                    continue;
+                }
 
-        // 각각의 공차와 각각의 시작요소에 대해 방향 4개를 다 돌아야 된다.
-        // 1. 행 + 열 + 2. 행 + 열 - 3. 행 - 열 + 4. 행 - 열 -
-        while (rowD < N && colD < M) {
+                //기울기: y증가량 / x증가량
+                double a = (buildings[i] - buildings[j]) / (double) (i - j);
+                //y절편: ax+b=y, b=y-ax
+                double b =  buildings[i] - a * (i + 1);
+                boolean canShow = true;
 
-            for (int row = 0; row < N; row++) {
-                for (int col = 0; col < M; col++) {
-                    String s = "";
-                    for (int i = row, j = col; i < N && i >= 0 && j < M && j >= 0; i += rowD, j += colD) {
-                        s += table[i][j];
-
-                        int n = Integer.parseInt(s);
-
-                        if (isSquare(n))
-                            ans = Math.max(ans, n);
-
-                        if (colD == 0 && rowD == 0) break;
+                if (j < i) {
+                    for (int c = i - 1; c > j; c--) {
+                        if (a * (c + 1) + b <= buildings[c]) {
+                            canShow = false;
+                            break;
+                        }
+                    }
+                } else {
+                    for (int c = i + 1; c < j; c++) {
+                        if (a * (c + 1) + b <= buildings[c]) {
+                            canShow = false;
+                            break;
+                        }
                     }
                 }
+                if (canShow) showed++;
             }
-            rowD++;
 
-            if (rowD == N && colD < M) {
-                rowD = -N + 1;
-                colD++;
-            }
+//            System.out.println("buildings[" + i + "] = " + buildings[i] + ": " + showed );
+            ans = Math.max(showed, ans);
         }
 
         System.out.println(ans);
-    }
-
-    public static boolean isSquare(int n) {
-        double sqrt = Math.sqrt(n);
-        return sqrt - Math.floor(sqrt) == 0;
     }
 }
