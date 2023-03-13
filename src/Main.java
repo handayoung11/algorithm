@@ -1,59 +1,47 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
 
-    public static int N;
-    public static int[] buildings;
-    public static int ans = 0;
+    static int ans = 0;
+    static Map<String, Integer[]> map = new HashMap<>();
 
-    // 백준 1027 - 고층 건물
+    // 백준 1034 - 램프
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        N = Integer.parseInt(br.readLine());
-        buildings = Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+        String nm[] = br.readLine().split(" ");
+        int N = Integer.parseInt(nm[0]);
+        int M = Integer.parseInt(nm[1]);
+
+        //문자열을 key로 0의 개수와 카운트 기록
+        //0의 개수가 K보다 작거나 같고 K와 홀짝이 맞을 경우 ans = 카운트로 처리
         for (int i = 0; i < N; i++) {
-            int showed = 0;
-
-            for (int j = 0; j < N; j++) {
-                if (i - 1 <= j && i + 1 >= j) {
-                    if (i != j) {
-                        showed++;
-                    }
-                    continue;
+            String s = br.readLine();
+            int zeros = 0;
+            for (int j = 0; j < M; j++) {
+                if (s.charAt(j) == '0') {
+                    zeros++;
                 }
-
-                //기울기: y증가량 / x증가량
-                double a = (buildings[i] - buildings[j]) / (double) (i - j);
-                //y절편: ax+b=y, b=y-ax
-                double b =  buildings[i] - a * (i + 1);
-                boolean canShow = true;
-
-                if (j < i) {
-                    for (int c = i - 1; c > j; c--) {
-                        if (a * (c + 1) + b <= buildings[c]) {
-                            canShow = false;
-                            break;
-                        }
-                    }
-                } else {
-                    for (int c = i + 1; c < j; c++) {
-                        if (a * (c + 1) + b <= buildings[c]) {
-                            canShow = false;
-                            break;
-                        }
-                    }
-                }
-                if (canShow) showed++;
             }
-
-//            System.out.println("buildings[" + i + "] = " + buildings[i] + ": " + showed );
-            ans = Math.max(showed, ans);
+            Integer[] value = map.get(s);
+            if (value == null) {
+                value = new Integer[] {0, zeros};
+                map.put(s, value);
+            }
+            value[0]++;
         }
+        int K = Integer.parseInt(br.readLine());
+        int K_REMAINDER = K % 2;
 
+        for (Map.Entry<String, Integer[]> m : map.entrySet()) {
+            if (m.getValue()[1] <= K && m.getValue()[1] % 2 == K_REMAINDER) {
+                ans = Math.max(ans, m.getValue()[0]);
+            }
+        }
         System.out.println(ans);
     }
 }
