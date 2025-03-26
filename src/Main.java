@@ -1,35 +1,29 @@
-import java.util.Scanner;
-import java.util.Stack;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
-// 백준 10828 - 스택
+// 백준 9093 - 단어 뒤집기
 public class Main {
 
-    public static void main(String[] args) {
-        Stack<Integer> arr= new Stack<>();
-        Scanner s = new Scanner(System.in);
-        int n = s.nextInt();
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        char st[] = new char[20];
+        int top = -1;
+        StringBuilder b = new StringBuilder();
+        int n = Integer.parseInt(br.readLine());
+
         for (int i = 0; i < n; i++) {
-            String command = s.next();
-            if (command.contains("push")) {
-                String num = s.next();
-                arr.add(Integer.parseInt(num));
-            } else if(command.equals("pop")) {
-                if (arr.isEmpty()) {
-                    System.out.println(-1);
-                    continue;
-                }
-                System.out.println(arr.pop());
-            } else if(command.equals("size")) {
-                System.out.println(arr.size());
-            } else if(command.equals("empty")) {
-                System.out.println(arr.isEmpty() ? 1 : 0);
-            } else {
-                if (arr.isEmpty()) {
-                    System.out.println(-1);
-                    continue;
-                }
-                System.out.println(arr.peek());
+            StringBuilder w = new StringBuilder(br.readLine()).append(' ');
+
+            for (int j = 0; j < w.length(); j++) {
+                if (w.charAt(j) == ' ') {
+                    while(top != -1)
+                        b.append(st[top--]);
+                    b.append(' ');
+                } else st[++top] = w.charAt(j);
             }
+            b.append('\n');
         }
+        System.out.print(b);
     }
 }
