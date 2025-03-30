@@ -1,31 +1,33 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 
-// 백준 9012 - 괄호
+// 백준 1874 - 스택 수열
 public class Main {
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringBuilder b = new StringBuilder();
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out), 400000);
+
         int n = Integer.parseInt(br.readLine());
+        int st[] = new int[100000], top = -1, now, c = 1;
 
         for (int i = 0; i < n; i++) {
-            StringBuilder w = new StringBuilder(br.readLine());
-            int cnt = 0;
+            now = Integer.parseInt(br.readLine());
 
-            for (int j = 0; j < w.length(); j++) {
-                if (w.charAt(j) == ')') cnt--;
-                else cnt++;
+            while (top == -1 || st[top] < now) {
+                st[++top] = c++;
+                bw.append("+\n");
+            }
 
-                if (cnt < 0) {
-                    b.append("NO\n");
-                    break;
-                } else if(j == w.length() - 1) {
-                    b.append(cnt == 0 ? "YES\n" : "NO\n");
-                }
+            if (st[top] == now) {
+                top--;
+                bw.append("-\n");
+            } else {
+                System.out.print("NO");
+                return;
             }
         }
-        System.out.println(b);
+
+        bw.flush();
+        bw.close();
     }
 }
