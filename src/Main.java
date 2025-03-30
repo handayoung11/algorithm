@@ -5,7 +5,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out), 400000);
+        StringBuilder sb = new StringBuilder();
 
         int n = Integer.parseInt(br.readLine());
         int st[] = new int[100000], top = -1, now, c = 1;
@@ -15,19 +15,18 @@ public class Main {
 
             while (top == -1 || st[top] < now) {
                 st[++top] = c++;
-                bw.append("+\n");
+                sb.append("+\n");
             }
 
             if (st[top] == now) {
                 top--;
-                bw.append("-\n");
+                sb.append("-\n");
             } else {
                 System.out.print("NO");
                 return;
             }
         }
 
-        bw.flush();
-        bw.close();
+        System.out.println(sb);
     }
 }
