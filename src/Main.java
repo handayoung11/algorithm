@@ -1,52 +1,47 @@
 import java.io.*;
 import java.util.LinkedList;
 
-// 백준 1406 - 에디터
+// 백준 10845 - 큐
 public class Main {
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String text = br.readLine();
-        int N = Integer.parseInt(br.readLine());
-        char[] left = new char[600000], right = new char[600000];
-        int lTop = text.length() - 1, rTop = -1;
+        StringBuilder sb = new StringBuilder();
 
-        for (int i = 0; i < text.length(); i++)
-            left[i] = text.charAt(i);
+        int N = Integer.parseInt(br.readLine());
+        int[] q = new int[100000];
+        int top = -1, idx = 0;
 
         for (int i = 0; i < N; i++) {
             String command = br.readLine();
+
             switch (command) {
-                case "L": {
-                    if (lTop != -1) {
-                        right[++rTop] = left[lTop--];
+                case "pop" : {
+                } case "front": {
+                } case "back": {
+                    if (top < idx) sb.append("-1");
+                    else {
+                        if (command.equals("pop"))
+                            sb.append(q[idx++]);
+                        else if(command.equals("front"))
+                            sb.append(q[idx]);
+                        else
+                            sb.append(q[top]);
                     }
+                    sb.append("\n");
                     break;
-                }
-                case "D": {
-                    if (rTop != -1) {
-                        left[++lTop] = right[rTop--];
-                    }
+                } case "size": {
+                    sb.append(top - idx + 1).append("\n");
                     break;
-                }
-                case "B": {
-                    if (lTop != -1) {
-                        lTop--;
-                    }
+                } case "empty": {
+                    sb.append(top < idx ? 1 : 0).append("\n");
                     break;
-                }
-                default: {
-                    char p = command.charAt(2);
-                    left[++lTop] = p;
+                } default: {
+                    q[++top] = Integer.parseInt(command.split(" ")[1]);
                 }
             }
         }
 
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
-        for (int i = 0; i < lTop + 1; i++)
-            bw.write(left[i]);
-        for (int i = rTop; i >= 0; i--)
-            bw.write(right[i]);
-        bw.flush();
+        System.out.println(sb);
     }
 }
