@@ -1,47 +1,34 @@
-import java.io.*;
-import java.util.LinkedList;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.lang.Integer;
+import java.io.IOException;
+import java.lang.StringBuilder;
+import java.util.ArrayList;
 
-// 백준 10845 - 큐
+// 1158 - 요세푸스 문제
 public class Main {
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String args[]) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("<");
 
-        int N = Integer.parseInt(br.readLine());
-        int[] q = new int[100000];
-        int top = -1, idx = 0;
+        String[] NK = br.readLine().split(" ");
+        int N = Integer.parseInt(NK[0]);
+        int K = Integer.parseInt(NK[1]);
+        int gap = -1;
 
+        ArrayList<Integer> arr = new ArrayList<>();
         for (int i = 0; i < N; i++) {
-            String command = br.readLine();
-
-            switch (command) {
-                case "pop" : {
-                } case "front": {
-                } case "back": {
-                    if (top < idx) sb.append("-1");
-                    else {
-                        if (command.equals("pop"))
-                            sb.append(q[idx++]);
-                        else if(command.equals("front"))
-                            sb.append(q[idx]);
-                        else
-                            sb.append(q[top]);
-                    }
-                    sb.append("\n");
-                    break;
-                } case "size": {
-                    sb.append(top - idx + 1).append("\n");
-                    break;
-                } case "empty": {
-                    sb.append(top < idx ? 1 : 0).append("\n");
-                    break;
-                } default: {
-                    q[++top] = Integer.parseInt(command.split(" ")[1]);
-                }
-            }
+            arr.add(i + 1);
         }
 
+
+        while (arr.size() != 1) {
+            gap += K;
+            gap = gap % arr.size();
+            sb.append(arr.get(gap)).append(", ");
+            arr.remove(gap--);
+        }
+        sb.append(arr.get(0)).append(">");
         System.out.println(sb);
     }
 }
