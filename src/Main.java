@@ -4,18 +4,18 @@ import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-// 10866 - 덱
+// 10866 - 덱(배열로 풀기)
 public class Main {
     public static void main(String args[]) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringBuilder sb = new StringBuilder();
 
         int N = Integer.parseInt(br.readLine());
-        Deque<Integer> deque = new ArrayDeque<>();
+        int[] deque = new int[N];
+        int front = 0, back = 0, size = 0;
 
         for (int i = 0; i < N; i++) {
             String command = br.readLine();
-            int size = deque.size();
 
             switch (command) {
                 case "front":
@@ -25,17 +25,19 @@ public class Main {
                     if (size == 0) sb.append("-1\n");
                     else {
                         switch (command) {
-                            case "pop_front":
+                            case "pop_front": size--;
                             case "front":
-                                sb.append(deque.getFirst()).append("\n");
+                                sb.append(deque[front]).append("\n");
                                 if (command.equals("pop_front"))
-                                    deque.removeFirst();
+                                    if (++front == N) front = 0;
                                 break;
-                            case "pop_back":
+                            case "pop_back": size--;
                             case "back":
-                                sb.append(deque.getLast()).append("\n");
+                                int idx = back - 1;
+                                if (idx == -1) idx = N - 1;
+                                sb.append(deque[idx]).append("\n");
                                 if (command.equals("pop_back"))
-                                    deque.removeLast();
+                                    back = idx;
                         }
                     }
                     break;
@@ -47,12 +49,16 @@ public class Main {
                     else sb.append("0\n");
                     break;
                 } default: {
+                    size++;
                     String[] comX = command.split(" ");
                     int X = Integer.parseInt(comX[1]);
                     if (comX[0].equals("push_front")) {
-                        deque.addFirst(X);
+                        if (--front == -1)
+                            front = N - 1;
+                        deque[front] = X;
                     } else {
-                        deque.addLast(X);
+                        deque[back] = X;
+                        if (++back == N) back = 0;
                     }
                 }
             }
