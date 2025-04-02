@@ -1,34 +1,62 @@
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.lang.Integer;
 import java.io.IOException;
-import java.lang.StringBuilder;
-import java.util.ArrayList;
+import java.io.InputStreamReader;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
-// 1158 - 요세푸스 문제
+// 10866 - 덱
 public class Main {
     public static void main(String args[]) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringBuilder sb = new StringBuilder("<");
+        StringBuilder sb = new StringBuilder();
 
-        String[] NK = br.readLine().split(" ");
-        int N = Integer.parseInt(NK[0]);
-        int K = Integer.parseInt(NK[1]);
-        int gap = -1;
+        int N = Integer.parseInt(br.readLine());
+        Deque<Integer> deque = new ArrayDeque<>();
 
-        ArrayList<Integer> arr = new ArrayList<>();
         for (int i = 0; i < N; i++) {
-            arr.add(i + 1);
-        }
+            String command = br.readLine();
+            int size = deque.size();
 
-
-        while (arr.size() != 1) {
-            gap += K;
-            gap = gap % arr.size();
-            sb.append(arr.get(gap)).append(", ");
-            arr.remove(gap--);
+            switch (command) {
+                case "front":
+                case "back":
+                case "pop_front":
+                case "pop_back": {
+                    if (size == 0) sb.append("-1\n");
+                    else {
+                        switch (command) {
+                            case "pop_front":
+                            case "front":
+                                sb.append(deque.getFirst()).append("\n");
+                                if (command.equals("pop_front"))
+                                    deque.removeFirst();
+                                break;
+                            case "pop_back":
+                            case "back":
+                                sb.append(deque.getLast()).append("\n");
+                                if (command.equals("pop_back"))
+                                    deque.removeLast();
+                        }
+                    }
+                    break;
+                } case "size": {
+                    sb.append(size).append("\n");
+                    break;
+                } case "empty": {
+                    if (size == 0) sb.append("1\n");
+                    else sb.append("0\n");
+                    break;
+                } default: {
+                    String[] comX = command.split(" ");
+                    int X = Integer.parseInt(comX[1]);
+                    if (comX[0].equals("push_front")) {
+                        deque.addFirst(X);
+                    } else {
+                        deque.addLast(X);
+                    }
+                }
+            }
         }
-        sb.append(arr.get(0)).append(">");
-        System.out.println(sb);
+        System.out.print(sb);
     }
 }
